@@ -1,6 +1,11 @@
 /* Лампа записи — только токены хаба, годится для любой темы; при unix-теме — терминальный вид */
-.topbar:not(:has(.slot:not(:empty))) { display: none; }   /* в покое лампы нет совсем — и пустой полосы тоже */
-.slot-topbar[data-plugin="write-lamp"] { margin-left: auto; position: relative; }
+/* лампа не в потоке страницы — висит поверх, по центру над лентой: интерфейс не сдвигается (владелец 07.10) */
+/* полоса только с лампой — без своего места: display: contents, лампа (fixed) видна, ничего не сдвигается */
+.topbar:not(:has(.slot:not([data-plugin="write-lamp"]):not(:empty))) { display: contents; }
+.slot-topbar[data-plugin="write-lamp"] { position: fixed; top: 12px; left: var(--wlamp-x, 50%); transform: translateX(-50%); z-index: 60;
+  display: flex; flex-direction: column; align-items: center; }
+.slot-topbar[data-plugin="write-lamp"]:empty { display: none; }
+.wlamp { box-shadow: 0 4px 14px -4px rgba(0, 0, 0, .35); }
 .wlamp { display: inline-flex; align-items: center; gap: 7px; padding: 2px 10px; border-radius: 999px; cursor: pointer;
   border: 1px solid color-mix(in oklab, var(--warning) 50%, var(--border)); background: color-mix(in oklab, var(--warning) 10%, var(--card));
   color: var(--foreground); font: var(--text-sm) var(--font); }
@@ -10,7 +15,7 @@
 .wlamp.danger i { background: var(--destructive); box-shadow: 0 0 0 4px color-mix(in oklab, var(--destructive) 25%, transparent); }
 .slot-topbar.on .wlamp i { animation: wlamp-blink 1s steps(1, end) infinite; }
 @keyframes wlamp-blink { 50% { opacity: 0.15; box-shadow: none; } }
-.wlamp-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 60; width: min(480px, 90vw); max-height: 70vh; overflow: auto;
+.wlamp-pop { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); z-index: 60; width: min(480px, 90vw); max-height: 70vh; overflow: auto;
   background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
   box-shadow: var(--shadow-2, 0 8px 24px rgba(0, 0, 0, .25)); color: var(--foreground); font: var(--text-sm)/1.45 var(--font); text-align: left; }
 .wlamp-h { display: block; margin-bottom: 4px; }

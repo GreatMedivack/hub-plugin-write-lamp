@@ -70,8 +70,15 @@ function line(hub, r, now) {
 export default function register(hub) {
   hub.addStyle("web/style.css");
   let last = null, tick = null;
+  // центр колонки с лентой (main), а не окна: слева — список сессий переменной ширины
+  const place = (root) => {
+    const m = document.querySelector("main")?.getBoundingClientRect();
+    if (m) root.style.setProperty("--wlamp-x", `${Math.round(m.left + m.width / 2)}px`);
+  };
+  window.addEventListener("resize", () => last && place(last[0]));
   const draw = (root, snap) => {
     const { live, day } = scan(snap), now = Date.now() / 1000;
+    place(root);
     root.classList.toggle("on", live.length > 0);
     // гаснуть через 30 с и обновлять «N с» — без нового снимка: пока горит или открыт список, раз в секунду
     clearTimeout(tick);
