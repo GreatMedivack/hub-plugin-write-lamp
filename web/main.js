@@ -6,7 +6,7 @@ import { classify } from "./classify.js";
 
 const AFTER = 30, DAY = 86400;
 const ended = new Map();          // id шага → когда мы увидели его конец (время на этой странице)
-let open = false;
+let open = false, hist = false;   // «За сутки» — свёрнуто по умолчанию (владелец 07.10)
 const tl = {};                    // сессия → {epoch, rev, items, busy}
 let redraw = () => {};
 
@@ -77,10 +77,23 @@ export default function register(hub) {
     const m = main?.getBoundingClientRect();
     if (!m) return;
     const pos = localStorage.getItem("wlamp.pos") === "bottom" ? "bottom" : "top";
-    root.dataset.pos = pos;
-    if (pos === "top") {
+    // сверху — в пустом промежутке шапки между её левой частью (имя, состояние, плашки) и правой (кнопки), чтобы не
+    // закрыть ничего; промежутка не хватает (узкое окно, длинные плашки) — справа внизу
+    let gap = null;
+    if (pos === "top" && head) {
+      const kids = [...head.children].filter((c) => c.offsetParent !== null);
+      const spacer = kids.findIndex((c) => c.classList.contains("spacer"));
+      const leaves = (els) => els.flatMap((c) => c.children.length ? [...c.querySelectorAll("*")].filter((x) => !x.children.length) : [c])
+        .map((x) => x.getBoundingClientRect()).filter((r) => r.width);
+      const left = leaves(spacer >= 0 ? kids.slice(0, spacer) : []), right = leaves(spacer >= 0 ? kids.slice(spacer + 1) : []);
+      const a = Math.max(m.left, ...left.map((r) => r.right)), b = Math.min(m.right, ...right.map((r) => r.left));
+      const need = (root.firstElementChild?.getBoundingClientRect().width || 140) + 32;
+      if (b - a >= need) gap = [a, b];
+    }
+    root.dataset.pos = gap || pos === "top" && !head ? "top" : "bottom";
+    if (root.dataset.pos === "top") {
       const h = head?.getBoundingClientRect();
-      root.style.setProperty("--wlamp-x", `${Math.round(m.left + m.width / 2)}px`);
+      root.style.setProperty("--wlamp-x", `${Math.round(gap ? (gap[0] + gap[1]) / 2 : m.left + m.width / 2)}px`);
       root.style.setProperty("--wlamp-y", `${Math.round(h ? h.top + h.height / 2 : 30)}px`);
     } else {
       const d = dock?.getBoundingClientRect();
@@ -112,13 +125,18 @@ export default function register(hub) {
       for (const r of live) pop.append(line(hub, r, now));
       const old = day.filter((r) => !live.includes(r)).slice(0, 15);
       if (old.length) {
-        pop.append(hub.el("b", "wlamp-h wlamp-hist", "За сутки"));
-        for (const r of old) pop.append(line(hub, r, now));
+        const t = hub.el("button", "wlamp-h wlamp-hist", `${hist ? "▾" : "▸"} За сутки · ${old.length}`);
+        t.type = "button";
+        t.setAttribute("aria-expanded", String(hist));
+        t.addEventListener("click", (e) => { e.stopPropagation(); hist = !hist; draw(root, snap); });
+        pop.append(t);
+        if (hist) for (const r of old) pop.append(line(hub, r, now));
       }
       pop.append(hub.el("div", "wlamp-f", "клик по строке — открыть сессию · только сигнал, агенты не останавливаются"));
       nodes.push(pop);
     }
     root.replaceChildren(...nodes);
+    place(root);   // по размеру уже нарисованной лампы
   };
   document.addEventListener("click", () => { if (open) { open = false; if (last) draw(...last); } });
   redraw = () => { if (last) draw(...last); };
