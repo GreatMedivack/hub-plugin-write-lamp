@@ -3,7 +3,8 @@
 /* полоса только с лампой — без своего места: display: contents, лампа (fixed) видна, ничего не сдвигается */
 .topbar:not(:has(.slot:not([data-plugin="write-lamp"]):not(:empty))) { display: contents; }
 .slot-topbar[data-plugin="write-lamp"] { position: fixed; z-index: 60; display: flex; flex-direction: column; align-items: center; }
-.slot-topbar[data-plugin="write-lamp"][data-pos="top"] { top: var(--wlamp-y, 30px); left: var(--wlamp-x, 50%); transform: translate(-50%, -50%); }
+.slot-topbar[data-plugin="write-lamp"][data-pos="top"] { top: var(--wlamp-y, 30px); left: var(--wlamp-x, 50%); transform: translate(-100%, -50%); align-items: flex-end; }
+[data-pos="top"] > .wlamp-pop { left: auto; right: 0; transform: none; }
 .slot-topbar[data-plugin="write-lamp"][data-pos="bottom"] { right: var(--wlamp-r, 24px); bottom: var(--wlamp-b, 140px); align-items: flex-end; }
 .slot-topbar[data-plugin="write-lamp"]:empty { display: none; }
 .wlamp { box-shadow: 0 4px 14px -4px rgba(0, 0, 0, .35); }

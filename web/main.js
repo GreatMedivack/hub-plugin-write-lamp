@@ -93,7 +93,8 @@ export default function register(hub) {
     root.dataset.pos = gap || pos === "top" && !head ? "top" : "bottom";
     if (root.dataset.pos === "top") {
       const h = head?.getBoundingClientRect();
-      root.style.setProperty("--wlamp-x", `${Math.round(gap ? (gap[0] + gap[1]) / 2 : m.left + m.width / 2)}px`);
+      // у правого края промежутка — рядом с «Кратко / Подробно» (владелец 07.10)
+      root.style.setProperty("--wlamp-x", `${Math.round(gap ? gap[1] - 12 : m.left + m.width / 2)}px`);
       root.style.setProperty("--wlamp-y", `${Math.round(h ? h.top + h.height / 2 : 30)}px`);
     } else {
       const d = dock?.getBoundingClientRect();
