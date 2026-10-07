@@ -97,9 +97,16 @@ export default function register(hub) {
       root.style.setProperty("--wlamp-x", `${Math.round(gap ? gap[1] - 12 : m.left + m.width / 2)}px`);
       root.style.setProperty("--wlamp-y", `${Math.round(h ? h.top + h.height / 2 : 30)}px`);
     } else {
-      const d = dock?.getBoundingClientRect();
-      root.style.setProperty("--wlamp-r", `${Math.round(innerWidth - m.right + 24)}px`);
-      root.style.setProperty("--wlamp-b", `${Math.round(innerHeight - (d ? d.top : m.bottom) + 10)}px`);
+      // не влезла в шапку — в поле ввода, слева от скрепки (владелец 07.10); нет поля — над нижним краем колонки
+      const clip = main.querySelector(".composer .attach, .attach")?.getBoundingClientRect();
+      if (clip && clip.width) {
+        root.style.setProperty("--wlamp-r", `${Math.round(innerWidth - clip.left + 8)}px`);
+        root.style.setProperty("--wlamp-b", `${Math.round(innerHeight - clip.bottom + (clip.height - (root.firstElementChild?.offsetHeight || 20)) / 2)}px`);
+      } else {
+        const d = dock?.getBoundingClientRect();
+        root.style.setProperty("--wlamp-r", `${Math.round(innerWidth - m.right + 24)}px`);
+        root.style.setProperty("--wlamp-b", `${Math.round(innerHeight - (d ? d.top : m.bottom) + 10)}px`);
+      }
     }
   };
   window.addEventListener("resize", () => last && place(last[0]));

@@ -7,7 +7,7 @@
 [data-pos="top"] > .wlamp-pop { left: auto; right: 0; transform: none; }
 .slot-topbar[data-plugin="write-lamp"][data-pos="bottom"] { right: var(--wlamp-r, 24px); bottom: var(--wlamp-b, 140px); align-items: flex-end; }
 .slot-topbar[data-plugin="write-lamp"]:empty { display: none; }
-.wlamp { box-shadow: 0 4px 14px -4px rgba(0, 0, 0, .35); }
+.wlamp { box-shadow: 0 4px 14px -4px rgba(0, 0, 0, .35); white-space: nowrap; }
 .wlamp { display: inline-flex; align-items: center; gap: 7px; padding: 2px 10px; border-radius: 999px; cursor: pointer;
   border: 1px solid color-mix(in oklab, var(--warning) 50%, var(--border)); background: color-mix(in oklab, var(--warning) 10%, var(--card));
   color: var(--foreground); font: var(--text-sm) var(--font); }
