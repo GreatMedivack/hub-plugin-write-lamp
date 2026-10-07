@@ -1,0 +1,36 @@
+/* Лампа записи — только токены хаба, годится для любой темы; при unix-теме — терминальный вид */
+.topbar:not(:has(.slot:not(:empty))) { display: none; }   /* в покое лампы нет совсем — и пустой полосы тоже */
+.slot-topbar[data-plugin="write-lamp"] { margin-left: auto; position: relative; }
+.wl { display: inline-flex; align-items: center; gap: 7px; padding: 2px 10px; border-radius: 999px; cursor: pointer;
+  border: 1px solid color-mix(in oklab, var(--warning) 50%, var(--border)); background: color-mix(in oklab, var(--warning) 10%, var(--card));
+  color: var(--foreground); font: var(--text-sm) var(--font); }
+.wl.danger { border-color: color-mix(in oklab, var(--destructive) 50%, var(--border)); background: color-mix(in oklab, var(--destructive) 10%, var(--card)); }
+.wl i { width: 10px; height: 10px; border-radius: 50%; background: var(--warning);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--warning) 25%, transparent); }
+.wl.danger i { background: var(--destructive); box-shadow: 0 0 0 4px color-mix(in oklab, var(--destructive) 25%, transparent); }
+.slot-topbar.on .wl i { animation: wl-blink 1s steps(1, end) infinite; }
+@keyframes wl-blink { 50% { opacity: 0.15; box-shadow: none; } }
+.wl-pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 60; width: min(480px, 90vw); max-height: 70vh; overflow: auto;
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+  box-shadow: var(--shadow-2, 0 8px 24px rgba(0, 0, 0, .25)); color: var(--foreground); font: var(--text-sm)/1.45 var(--font); text-align: left; }
+.wl-h { display: block; margin-bottom: 4px; }
+.wl-hist { margin-top: 10px; color: var(--muted-foreground); font-weight: 500; }
+.wl-it { display: grid; grid-template-columns: 3.4em minmax(0, 1fr); align-items: baseline; gap: 2px 10px; width: 100%; padding: 7px 0;
+  border: 0; border-top: 1px solid var(--border); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.wl-it:hover b { text-decoration: underline; }
+.wl-k { font-size: 12px; font-weight: 600; text-align: center; border-radius: 4px; padding: 1px 0;
+  background: color-mix(in oklab, var(--warning) 20%, var(--card)); }
+.wl-k.danger { background: color-mix(in oklab, var(--destructive) 22%, var(--card)); }
+.wl-w { grid-column: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted-foreground); font-size: .92em; }
+.wl-f { color: var(--muted-foreground); font-size: .85em; margin-top: 6px; }
+@media (prefers-reduced-motion: reduce) { .slot-topbar.on .wl i, :root.unix-theme .slot-topbar.on .wl { animation: none; } }
+
+/* unix-тема: лампа — инверсией «[!] N записи», мигает весь блок; попап — тонкая рамка цветом внимания, без скруглений */
+:root.unix-theme .wl { border: 0; border-radius: 0; background: var(--calm-attn, var(--warning)); color: var(--background); padding: 0 6px; }
+:root.unix-theme .wl.danger { background: var(--destructive); }
+:root.unix-theme .wl i { display: none; }
+:root.unix-theme .wl::before { content: "[!]"; }
+:root.unix-theme .slot-topbar.on .wl { animation: wl-inv 1s steps(1, end) infinite; }
+@keyframes wl-inv { 50% { background: transparent; color: var(--calm-attn, var(--warning)); } }
+:root.unix-theme .wl-pop { border-radius: 0; box-shadow: none; border: 1px solid var(--calm-attn, var(--warning)); }
+:root.unix-theme .wl-k { border-radius: 0; font-weight: 400; }
