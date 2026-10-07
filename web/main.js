@@ -70,10 +70,23 @@ function line(hub, r, now) {
 export default function register(hub) {
   hub.addStyle("web/style.css");
   let last = null, tick = null;
-  // центр колонки с лентой (main), а не окна: слева — список сессий переменной ширины
+  // место: «top» — по центру строки шапки (на одной линии с её кнопками), «bottom» — справа внизу над полем ввода.
+  // Считается от колонки с лентой (main): слева список сессий переменной ширины
   const place = (root) => {
-    const m = document.querySelector("main")?.getBoundingClientRect();
-    if (m) root.style.setProperty("--wlamp-x", `${Math.round(m.left + m.width / 2)}px`);
+    const main = document.querySelector("main"), head = main?.querySelector(":scope > .head"), dock = main?.querySelector(":scope > .dock");
+    const m = main?.getBoundingClientRect();
+    if (!m) return;
+    const pos = localStorage.getItem("wlamp.pos") === "bottom" ? "bottom" : "top";
+    root.dataset.pos = pos;
+    if (pos === "top") {
+      const h = head?.getBoundingClientRect();
+      root.style.setProperty("--wlamp-x", `${Math.round(m.left + m.width / 2)}px`);
+      root.style.setProperty("--wlamp-y", `${Math.round(h ? h.top + h.height / 2 : 30)}px`);
+    } else {
+      const d = dock?.getBoundingClientRect();
+      root.style.setProperty("--wlamp-r", `${Math.round(innerWidth - m.right + 24)}px`);
+      root.style.setProperty("--wlamp-b", `${Math.round(innerHeight - (d ? d.top : m.bottom) + 10)}px`);
+    }
   };
   window.addEventListener("resize", () => last && place(last[0]));
   const draw = (root, snap) => {
