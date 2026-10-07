@@ -56,12 +56,12 @@ function scan(snap) {
 }
 
 function line(hub, r, now) {
-  const it = hub.el("button", "wl-it");
+  const it = hub.el("button", "wlamp-it");
   it.type = "button";
-  it.append(hub.el("span", `wl-k${r.danger ? " danger" : ""}`, r.kind));
+  it.append(hub.el("span", `wlamp-k${r.danger ? " danger" : ""}`, r.kind));
   it.append(hub.el("b", null, `${r.session}${r.where ? " → " + r.where : ""}`));
   const state = r.asks ? "ждёт подтверждения" : r.running ? ago(now - r.ts) : `готово · ${ago(now - (r.end || r.ts))} назад`;
-  it.append(hub.el("span", "wl-w", `${r.what.slice(0, 140)} · ${state}`));
+  it.append(hub.el("span", "wlamp-w", `${r.what.slice(0, 140)} · ${state}`));
   it.title = r.what;
   it.addEventListener("click", () => { open = false; location.hash = `#/s/${encodeURIComponent(r.session)}`; });
   return it;
@@ -77,25 +77,25 @@ export default function register(hub) {
     clearTimeout(tick);
     if (live.length || open) tick = setTimeout(() => last && draw(...last), 1000);
     if (!live.length && !open) { root.replaceChildren(); return; }
-    const lamp = hub.el("button", `wl${live.some((r) => r.danger) ? " danger" : ""}`);
+    const lamp = hub.el("button", `wlamp${live.some((r) => r.danger) ? " danger" : ""}`);
     lamp.type = "button";
     lamp.setAttribute("aria-expanded", String(open));
-    lamp.append(hub.el("i"), hub.el("span", "wl-n", live.length ? `${live.length} ${plural(live.length, "запись", "записи", "записей")}` : "записей нет"));
+    lamp.append(hub.el("i"), hub.el("span", "wlamp-n", live.length ? `${live.length} ${plural(live.length, "запись", "записи", "записей")}` : "записей нет"));
     lamp.title = "Агенты пишут наружу — кто и что";
     lamp.addEventListener("click", (e) => { e.stopPropagation(); open = !open; draw(root, snap); });
     const nodes = [lamp];
     if (open) {
-      const pop = hub.el("div", "wl-pop");
+      const pop = hub.el("div", "wlamp-pop");
       pop.addEventListener("click", (e) => e.stopPropagation());
-      pop.append(hub.el("b", "wl-h", "Сейчас пишут наружу"));
-      if (!live.length) pop.append(hub.el("div", "wl-f", "сейчас — никто"));
+      pop.append(hub.el("b", "wlamp-h", "Сейчас пишут наружу"));
+      if (!live.length) pop.append(hub.el("div", "wlamp-f", "сейчас — никто"));
       for (const r of live) pop.append(line(hub, r, now));
       const old = day.filter((r) => !live.includes(r)).slice(0, 15);
       if (old.length) {
-        pop.append(hub.el("b", "wl-h wl-hist", "За сутки"));
+        pop.append(hub.el("b", "wlamp-h wlamp-hist", "За сутки"));
         for (const r of old) pop.append(line(hub, r, now));
       }
-      pop.append(hub.el("div", "wl-f", "клик по строке — открыть сессию · только сигнал, агенты не останавливаются"));
+      pop.append(hub.el("div", "wlamp-f", "клик по строке — открыть сессию · только сигнал, агенты не останавливаются"));
       nodes.push(pop);
     }
     root.replaceChildren(...nodes);
