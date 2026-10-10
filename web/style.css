@@ -1,12 +1,12 @@
 /* Лампа записи — только токены хаба, годится для любой темы; при unix-теме — терминальный вид */
 /* лампа не в потоке страницы — висит поверх, по центру над лентой: интерфейс не сдвигается (владелец 07.10) */
 /* полоса только с лампой — без своего места: display: contents, лампа (fixed) видна, ничего не сдвигается */
-.topbar:not(:has(.slot:not([data-plugin="write-lamp"]):not(:empty))) { display: contents; }
-.slot-topbar[data-plugin="write-lamp"] { position: fixed; z-index: 60; display: flex; flex-direction: column; align-items: center; }
-.slot-topbar[data-plugin="write-lamp"][data-pos="top"] { top: var(--wlamp-y, 30px); left: var(--wlamp-x, 50%); transform: translate(-100%, -50%); align-items: flex-end; }
+.topbar:not(:has(.slot:not(:is([data-plugin="write-lamp"], [data-plugin$=":write-lamp"])):not(:empty))) { display: contents; }
+.slot-topbar:is([data-plugin="write-lamp"], [data-plugin$=":write-lamp"]) { position: fixed; z-index: 60; display: flex; flex-direction: column; align-items: center; }
+.slot-topbar:is([data-plugin="write-lamp"], [data-plugin$=":write-lamp"])[data-pos="top"] { top: var(--wlamp-y, 30px); left: var(--wlamp-x, 50%); transform: translate(-100%, -50%); align-items: flex-end; }
 [data-pos="top"] > .wlamp-pop { left: auto; right: 0; transform: none; }
-.slot-topbar[data-plugin="write-lamp"][data-pos="bottom"] { right: var(--wlamp-r, 24px); bottom: var(--wlamp-b, 140px); align-items: flex-end; }
-.slot-topbar[data-plugin="write-lamp"]:empty { display: none; }
+.slot-topbar:is([data-plugin="write-lamp"], [data-plugin$=":write-lamp"])[data-pos="bottom"] { right: var(--wlamp-r, 24px); bottom: var(--wlamp-b, 140px); align-items: flex-end; }
+.slot-topbar:is([data-plugin="write-lamp"], [data-plugin$=":write-lamp"]):empty { display: none; }
 .wlamp { box-shadow: 0 4px 14px -4px rgba(0, 0, 0, .35); white-space: nowrap; }
 .wlamp { display: inline-flex; align-items: center; gap: 7px; padding: 2px 10px; border-radius: 999px; cursor: pointer;
   border: 1px solid color-mix(in oklab, var(--warning) 50%, var(--border)); background: color-mix(in oklab, var(--warning) 10%, var(--card));
