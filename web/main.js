@@ -69,7 +69,7 @@ function line(hub, r, now) {
 
 export default function register(hub) {
   hub.addStyle("web/style.css");
-  let last = null, tick = null;
+  let last = null, tick = null, hintW = 0;
   // место (владелец 14.10): где есть поле ввода — в нём, слева от скрепки, всегда, а не только когда шапка тесная; где
   // поля нет («Поток», виды плагинов) — в строке заголовка вида, в её самом широком пустом промежутке у правого края; не влезла —
   // над нижним краем колонки. Считается от колонки с лентой (main): слева список сессий переменной ширины
@@ -80,7 +80,13 @@ export default function register(hub) {
     const pad = (px) => main.style.setProperty("--wlamp-pad", `${px}px`);
     if (!root.firstElementChild) return pad(0);
     const lamp = root.firstElementChild, w = lamp?.getBoundingClientRect().width || 140, lh = lamp?.offsetHeight || 20;
-    const clip = main.querySelector(".composer .attach, .attach")?.getBoundingClientRect();
+    let clip = main.querySelector(".composer .attach, .attach")?.getBoundingClientRect();
+    // левее подсказки «Ctrl I» у скрепки (её видно, пока поле без фокуса): место под неё держится и при фокусе,
+    // чтобы лампа не прыгала (владелец 14.10: «наезжает на этот элемент»)
+    const hk = main.querySelector(".composer .kbd-hint")?.getBoundingClientRect();
+    if (hk?.width && clip?.width) hintW = clip.left - hk.left;
+    if (clip?.width && main.querySelector(".composer .kbd-hint"))
+      clip = { left: clip.left - hintW, bottom: clip.bottom, height: clip.height, width: clip.width };
     let bar = null, gap = null;
     if (!clip?.width) {
       bar = main.querySelector(":scope > .head") || main.querySelector(":scope > .ext-view > * > :first-child");
@@ -97,7 +103,7 @@ export default function register(hub) {
       if (!gap) bar = null;
     }
     root.dataset.pos = bar ? "top" : "bottom";
-    pad(!bar && clip?.width ? Math.round(w + 12) : 0);
+    pad(!bar && clip?.width ? Math.round(w + 12 + (main.querySelector(".composer .kbd-hint") ? hintW : 0)) : 0);
     if (bar) {
       const r = bar.getBoundingClientRect();
       root.style.setProperty("--wlamp-x", `${Math.round(gap[1] - 16)}px`);   // у правого края промежутка
@@ -112,6 +118,7 @@ export default function register(hub) {
     }
   };
   window.addEventListener("resize", () => last && place(last[0]));
+  for (const ev of ["focusin", "focusout"]) document.addEventListener(ev, () => last && setTimeout(() => place(last[0])));
   const draw = (root, snap) => {
     const { live, day } = scan(snap), now = Date.now() / 1000;
     place(root);
