@@ -43,3 +43,5 @@
 :root.unix-theme .wlamp-pop { border-radius: 0; box-shadow: none; border: 1px solid var(--calm-attn, var(--warning)); }
 :root.unix-theme .wlamp-k { border-radius: 0; font-weight: 400; }
 [data-pos="bottom"] > .wlamp-pop { top: auto; bottom: calc(100% + 6px); left: auto; right: 0; transform: none; }
+/* лампа в поле ввода — текст поля не заходит под неё (--wlamp-pad ставит web/main.js) */
+main .dock textarea { padding-right: var(--wlamp-pad, 0px); }

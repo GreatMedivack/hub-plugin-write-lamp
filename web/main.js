@@ -70,43 +70,45 @@ function line(hub, r, now) {
 export default function register(hub) {
   hub.addStyle("web/style.css");
   let last = null, tick = null;
-  // место: «top» — по центру строки шапки (на одной линии с её кнопками), «bottom» — справа внизу над полем ввода.
-  // Считается от колонки с лентой (main): слева список сессий переменной ширины
+  // место (владелец 14.10): где есть поле ввода — в нём, слева от скрепки, всегда, а не только когда шапка тесная; где
+  // поля нет («Поток», виды плагинов) — в строке заголовка вида, в её самом широком пустом промежутке у правого края; не влезла —
+  // над нижним краем колонки. Считается от колонки с лентой (main): слева список сессий переменной ширины
   const place = (root) => {
-    const main = document.querySelector("main"), head = main?.querySelector(":scope > .head"), dock = main?.querySelector(":scope > .dock");
-    const m = main?.getBoundingClientRect();
+    const main = document.querySelector("main"), m = main?.getBoundingClientRect();
     if (!m) return;
-    const pos = localStorage.getItem("wlamp.pos") === "bottom" ? "bottom" : "top";
-    // сверху — в пустом промежутке шапки между её левой частью (имя, состояние, плашки) и правой (кнопки), чтобы не
-    // закрыть ничего; промежутка не хватает (узкое окно, длинные плашки) — справа внизу
-    let gap = null;
-    if (pos === "top" && head) {
-      const kids = [...head.children].filter((c) => c.offsetParent !== null);
-      const spacer = kids.findIndex((c) => c.classList.contains("spacer"));
-      const leaves = (els) => els.flatMap((c) => c.children.length ? [...c.querySelectorAll("*")].filter((x) => !x.children.length) : [c])
-        .map((x) => x.getBoundingClientRect()).filter((r) => r.width);
-      const left = leaves(spacer >= 0 ? kids.slice(0, spacer) : []), right = leaves(spacer >= 0 ? kids.slice(spacer + 1) : []);
-      const a = Math.max(m.left, ...left.map((r) => r.right)), b = Math.min(m.right, ...right.map((r) => r.left));
-      const need = (root.firstElementChild?.getBoundingClientRect().width || 140) + 32;
-      if (b - a >= need) gap = [a, b];
-    }
-    root.dataset.pos = gap || pos === "top" && !head ? "top" : "bottom";
-    if (root.dataset.pos === "top") {
-      const h = head?.getBoundingClientRect();
-      // у правого края промежутка — рядом с «Кратко / Подробно» (владелец 07.10)
-      root.style.setProperty("--wlamp-x", `${Math.round(gap ? gap[1] - 12 : m.left + m.width / 2)}px`);
-      root.style.setProperty("--wlamp-y", `${Math.round(h ? h.top + h.height / 2 : 30)}px`);
-    } else {
-      // не влезла в шапку — в поле ввода, слева от скрепки (владелец 07.10); нет поля — над нижним краем колонки
-      const clip = main.querySelector(".composer .attach, .attach")?.getBoundingClientRect();
-      if (clip && clip.width) {
-        root.style.setProperty("--wlamp-r", `${Math.round(innerWidth - clip.left + 8)}px`);
-        root.style.setProperty("--wlamp-b", `${Math.round(innerHeight - clip.bottom + (clip.height - (root.firstElementChild?.offsetHeight || 20)) / 2)}px`);
-      } else {
-        const d = dock?.getBoundingClientRect();
-        root.style.setProperty("--wlamp-r", `${Math.round(innerWidth - m.right + 24)}px`);
-        root.style.setProperty("--wlamp-b", `${Math.round(innerHeight - (d ? d.top : m.bottom) + 10)}px`);
+    // в поле ввода лампа стоит поверх конца строки — текст поля до неё не доходит (отступ справа на её ширину)
+    const pad = (px) => main.style.setProperty("--wlamp-pad", `${px}px`);
+    if (!root.firstElementChild) return pad(0);
+    const lamp = root.firstElementChild, w = lamp?.getBoundingClientRect().width || 140, lh = lamp?.offsetHeight || 20;
+    const clip = main.querySelector(".composer .attach, .attach")?.getBoundingClientRect();
+    let bar = null, gap = null;
+    if (!clip?.width) {
+      bar = main.querySelector(":scope > .head") || main.querySelector(":scope > .ext-view > * > :first-child");
+      const r = bar?.getBoundingClientRect();
+      if (r?.width && r.height < 90) {   // самый широкий промежуток между элементами строки, куда лампа влезает
+        const xs = [...bar.querySelectorAll("*")].filter((x) => !x.children.length).map((x) => x.getBoundingClientRect())
+          .filter((x) => x.width).sort((a, b) => a.left - b.left);
+        let edge = r.left;
+        for (const x of [...xs, { left: r.right - 4, right: r.right }]) {
+          if (x.left - edge >= w + 32 && (!gap || x.left - edge > gap[1] - gap[0])) gap = [edge, x.left];
+          edge = Math.max(edge, x.right);
+        }
       }
+      if (!gap) bar = null;
+    }
+    root.dataset.pos = bar ? "top" : "bottom";
+    pad(!bar && clip?.width ? Math.round(w + 12) : 0);
+    if (bar) {
+      const r = bar.getBoundingClientRect();
+      root.style.setProperty("--wlamp-x", `${Math.round(gap[1] - 16)}px`);   // у правого края промежутка
+      root.style.setProperty("--wlamp-y", `${Math.round(r.top + r.height / 2)}px`);
+    } else if (clip?.width) {
+      root.style.setProperty("--wlamp-r", `${Math.round(innerWidth - clip.left + 8)}px`);
+      root.style.setProperty("--wlamp-b", `${Math.round(innerHeight - clip.bottom + (clip.height - lh) / 2)}px`);
+    } else {
+      const d = main.querySelector(":scope > .dock")?.getBoundingClientRect();
+      root.style.setProperty("--wlamp-r", `${Math.round(innerWidth - m.right + 24)}px`);
+      root.style.setProperty("--wlamp-b", `${Math.round(innerHeight - (d ? d.top : m.bottom) + 10)}px`);
     }
   };
   window.addEventListener("resize", () => last && place(last[0]));
@@ -117,7 +119,7 @@ export default function register(hub) {
     // гаснуть через 30 с и обновлять «N с» — без нового снимка: пока горит или открыт список, раз в секунду
     clearTimeout(tick);
     if (live.length || open) tick = setTimeout(() => last && draw(...last), 1000);
-    if (!live.length && !open) { root.replaceChildren(); return; }
+    if (!live.length && !open) { root.replaceChildren(); place(root); return; }
     const lamp = hub.el("button", `wlamp${live.some((r) => r.danger) ? " danger" : ""}`);
     lamp.type = "button";
     lamp.setAttribute("aria-expanded", String(open));
