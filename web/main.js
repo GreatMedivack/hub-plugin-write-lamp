@@ -69,7 +69,7 @@ function line(hub, r, now) {
 
 export default function register(hub) {
   hub.addStyle("web/style.css");
-  let last = null, tick = null, hintW = 0;
+  let last = null, tick = null, hintW = 0, lampW = 0, lampH = 0;
   // место (владелец 14.10): где есть поле ввода — в нём, слева от скрепки, всегда, а не только когда шапка тесная; где
   // поля нет («Поток», виды плагинов) — в строке заголовка вида, в её самом широком пустом промежутке у правого края; не влезла —
   // над нижним краем колонки. Считается от колонки с лентой (main): слева список сессий переменной ширины
@@ -79,7 +79,12 @@ export default function register(hub) {
     // в поле ввода лампа стоит поверх конца строки — текст поля до неё не доходит (отступ справа на её ширину)
     const pad = (px) => main.style.setProperty("--wlamp-pad", `${px}px`);
     if (!root.firstElementChild) return pad(0);
-    const lamp = root.firstElementChild, w = lamp?.getBoundingClientRect().width || 140, lh = lamp?.offsetHeight || 20;
+    // ширина — последняя ненулевая: в момент перерисовки слота лампа бывает ещё не выложена (0 → было 140 по умолчанию),
+    // и отступ поля скакал на 28px раз в секунду — текст в поле перепрыгивал на другие строки (владелец 16.10)
+    const lamp = root.firstElementChild, lw = lamp?.getBoundingClientRect().width;
+    if (lw) lampW = lw;
+    const w = lampW || 140, lh = lamp?.offsetHeight || lampH || 20;
+    if (lamp?.offsetHeight) lampH = lamp.offsetHeight;
     let clip = main.querySelector(".composer .attach, .attach")?.getBoundingClientRect();
     // левее подсказки «Ctrl I» у скрепки (её видно, пока поле без фокуса): место под неё держится и при фокусе,
     // чтобы лампа не прыгала (владелец 14.10: «наезжает на этот элемент»)
