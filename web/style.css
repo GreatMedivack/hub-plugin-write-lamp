@@ -47,7 +47,7 @@
 :root.unix-theme .wlamp.danger { background: var(--destructive); }
 :root.unix-theme .wlamp i { display: none; }
 :root.unix-theme .wlamp::before { content: "[!]"; }
-:root.unix-theme .wlamp.idle { background: transparent; color: var(--muted-foreground); box-shadow: inset 0 0 0 1px var(--border); }
+:root.unix-theme .wlamp.idle { background: transparent; color: var(--muted-foreground); box-shadow: none; }
 :root.unix-theme .wlamp.idle::before { content: "[ ]"; }
 :root.unix-theme .slot-topbar.on .wlamp { animation: wlamp-inv 1s steps(1, end) infinite; }
 @keyframes wlamp-inv { 50% { background: transparent; color: var(--calm-attn, var(--warning)); } }
