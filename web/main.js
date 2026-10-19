@@ -132,12 +132,20 @@ export default function register(hub) {
     clearTimeout(tick);
     if (live.length || open) tick = setTimeout(() => last && draw(...last), 1000);
     if (!live.length && !open) { root.replaceChildren(); place(root); return; }
-    const lamp = hub.el("button", `wlamp${live.some((r) => r.danger) ? " danger" : ""}`);
-    lamp.type = "button";
+    // лампа — та же кнопка, меняется только текст: новая кнопка раз в секунду начинала мигание заново и подменяла
+    // элемент под мышью (владелец 19.10: «появляется какой-то курсор при мигании»)
+    let lamp = root.querySelector(":scope > .wlamp");
+    if (!lamp) {
+      lamp = hub.el("button", "wlamp");
+      lamp.type = "button";
+      lamp.append(hub.el("i"), hub.el("span", "wlamp-n"));
+      lamp.title = "Агенты пишут наружу — кто и что";
+      lamp.addEventListener("click", (e) => { e.stopPropagation(); open = !open; if (last) draw(...last); });
+    }
+    lamp.className = `wlamp${live.some((r) => r.danger) ? " danger" : ""}`;
     lamp.setAttribute("aria-expanded", String(open));
-    lamp.append(hub.el("i"), hub.el("span", "wlamp-n", live.length ? `${live.length} ${plural(live.length, "запись", "записи", "записей")}` : "записей нет"));
-    lamp.title = "Агенты пишут наружу — кто и что";
-    lamp.addEventListener("click", (e) => { e.stopPropagation(); open = !open; draw(root, snap); });
+    const txt = live.length ? `${live.length} ${plural(live.length, "запись", "записи", "записей")}` : "записей нет", n = lamp.lastElementChild;
+    if (n.textContent !== txt) n.textContent = txt;
     const nodes = [lamp];
     if (open) {
       const pop = hub.el("div", "wlamp-pop");
@@ -157,7 +165,8 @@ export default function register(hub) {
       pop.append(hub.el("div", "wlamp-f", "клик по строке — открыть сессию · только сигнал, агенты не останавливаются"));
       nodes.push(pop);
     }
-    root.replaceChildren(...nodes);
+    if (root.firstElementChild !== lamp) root.replaceChildren(...nodes);
+    else { while (lamp.nextSibling) lamp.nextSibling.remove(); root.append(...nodes.slice(1)); }
     place(root);   // по размеру уже нарисованной лампы
   };
   document.addEventListener("click", () => { if (open) { open = false; if (last) draw(...last); } });

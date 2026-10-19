@@ -34,7 +34,7 @@
 @media (prefers-reduced-motion: reduce) { .slot-topbar.on .wlamp i, :root.unix-theme .slot-topbar.on .wlamp { animation: none; } }
 
 /* unix-тема: лампа — инверсией «[!] N записи», мигает весь блок; попап — тонкая рамка цветом внимания, без скруглений */
-:root.unix-theme .wlamp { border: 0; border-radius: 0; background: var(--calm-attn, var(--warning)); color: var(--background); padding: 0 6px; }
+:root.unix-theme .wlamp { box-shadow: none; border: 0; border-radius: 0; background: var(--calm-attn, var(--warning)); color: var(--background); padding: 0 6px; }
 :root.unix-theme .wlamp.danger { background: var(--destructive); }
 :root.unix-theme .wlamp i { display: none; }
 :root.unix-theme .wlamp::before { content: "[!]"; }
