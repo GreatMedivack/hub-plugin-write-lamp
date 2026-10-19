@@ -131,20 +131,23 @@ export default function register(hub) {
     // гаснуть через 30 с и обновлять «N с» — без нового снимка: пока горит или открыт список, раз в секунду
     clearTimeout(tick);
     if (live.length || open) tick = setTimeout(() => last && draw(...last), 1000);
-    if (!live.length && !open) { root.replaceChildren(); place(root); return; }
+    // лампа видна всегда: пока никто не пишет — тусклая и не мигает, клик — история за сутки (владелец 19.10: «сделать
+    // немигающей, а не убирать, когда ничего нет»)
     // лампа — та же кнопка, меняется только текст: новая кнопка раз в секунду начинала мигание заново и подменяла
     // элемент под мышью (владелец 19.10: «появляется какой-то курсор при мигании»)
     let lamp = root.querySelector(":scope > .wlamp");
     if (!lamp) {
       lamp = hub.el("button", "wlamp");
       lamp.type = "button";
-      lamp.append(hub.el("i"), hub.el("span", "wlamp-n"));
+      const n = hub.el("span", "wlamp-n");
+      n.append(hub.el("span", "wlamp-t"));
+      lamp.append(hub.el("i"), n);
       lamp.title = "Агенты пишут наружу — кто и что";
       lamp.addEventListener("click", (e) => { e.stopPropagation(); open = !open; if (last) draw(...last); });
     }
-    lamp.className = `wlamp${live.some((r) => r.danger) ? " danger" : ""}`;
+    lamp.className = `wlamp${!live.length ? " idle" : live.some((r) => r.danger) ? " danger" : ""}`;
     lamp.setAttribute("aria-expanded", String(open));
-    const txt = live.length ? `${live.length} ${plural(live.length, "запись", "записи", "записей")}` : "записей нет", n = lamp.lastElementChild;
+    const txt = live.length ? `${live.length} ${plural(live.length, "запись", "записи", "записей")}` : "записей нет", n = lamp.querySelector(".wlamp-t");
     if (n.textContent !== txt) n.textContent = txt;
     const nodes = [lamp];
     if (open) {
