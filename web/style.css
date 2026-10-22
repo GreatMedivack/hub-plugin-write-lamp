@@ -44,7 +44,10 @@
 
 /* unix-тема: лампа — инверсией «[!] N записи», мигает весь блок; попап — тонкая рамка цветом внимания, без скруглений */
 :root.unix-theme .wlamp { box-shadow: none; border: 0; border-radius: 0; background: var(--calm-attn, var(--warning)); color: var(--background); padding: 0 6px; }
-:root.unix-theme .wlamp.danger { background: var(--destructive); }
+/* опасная запись (база, удаление) — тем же цветом темы, отличие — знак «[‼]» той же ширины: чужой красный/оранжевый
+   в зелёной теме выбивался (владелец 22.10: «в зелёной юникс-теме мигает оранжевым») */
+:root.unix-theme .wlamp.danger { background: var(--calm-attn, var(--warning)); }
+:root.unix-theme .wlamp.danger::before { content: "[‼]"; }
 :root.unix-theme .wlamp i { display: none; }
 :root.unix-theme .wlamp::before { content: "[!]"; }
 :root.unix-theme .wlamp.idle { background: transparent; color: var(--muted-foreground); box-shadow: none; }
@@ -53,6 +56,7 @@
 @keyframes wlamp-inv { 50% { background: transparent; color: var(--calm-attn, var(--warning)); } }
 :root.unix-theme .wlamp-pop { border-radius: 0; box-shadow: none; border: 1px solid var(--calm-attn, var(--warning)); }
 :root.unix-theme .wlamp-k { border-radius: 0; font-weight: 400; }
+:root.unix-theme .wlamp-k.danger { background: color-mix(in oklab, var(--calm-attn, var(--warning)) 30%, var(--card)); }
 [data-pos="bottom"] > .wlamp-pop { top: auto; bottom: calc(100% + 6px); left: auto; right: 0; transform: none; }
 /* лампа в поле ввода — текст поля не заходит под неё (--wlamp-pad ставит web/main.js) */
 main .dock textarea { padding-right: var(--wlamp-pad, 0px); }
