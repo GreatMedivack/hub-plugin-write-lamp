@@ -7,21 +7,41 @@ import { classify } from "./classify.js";
 const AFTER = 30, DAY = 86400;
 const ended = new Map();          // id шага → когда мы увидели его конец (время на этой странице)
 let open = false, hist = false;   // «За сутки» — свёрнуто по умолчанию (владелец 07.10)
-const tl = {};                    // сессия → {epoch, rev, items, busy}
+// сессия → {epoch, rev, items, busy}; items — только шаги-записи (classify), не вся лента: лампа держала до 300 шагов
+// каждой сессии и разбирала их все заново на каждом снимке (23.10: половина памяти страницы и ~1 с из 30 на 57 сессиях)
+const tl = {};
+const hits = new WeakMap();       // шаг → classify(шаг); правленый шаг приходит новым объектом — разбирается заново
+const hitOf = (st) => { let h = hits.get(st); if (h === undefined) hits.set(st, h = classify(st)); return h; };
 let redraw = () => {};
+// запросов ленты сразу — не больше PULLS: у браузера шесть соединений к хабу, а первый снимок звал все сессии разом —
+// лента открытой сессии (тот же /api/timeline) ждала в очереди за ними
+const PULLS = 2, queue = [];
+let pulling = 0, snapNow = null;
 
-async function pull(name, snap) {
+function pull(name, snap) {
   const want = (snap.timeline_rev || {})[name] || 0, t = tl[name] || (tl[name] = { epoch: null, rev: 0, items: [] });
   if (t.busy || (t.epoch === snap.epoch && t.rev >= want)) return;
   t.busy = true;
+  queue.push(name);
+  next();
+}
+function next() {
+  while (pulling < PULLS && queue.length) {
+    pulling++;
+    load(queue.shift()).finally(() => { pulling--; next(); });
+  }
+}
+async function load(name) {
+  const t = tl[name];
   try {
-    const since = t.epoch === snap.epoch ? t.rev : 0;
+    const since = t.epoch === snapNow?.epoch ? t.rev : 0;
     const q = new URLSearchParams({ session: name, since: String(since), epoch: t.epoch || "" });
     const r = await (await fetch(`/api/timeline?${q}`)).json();
-    if (r.full) t.items = r.items.filter((x) => x.kind === "tool");
+    const mine = r.items.filter((x) => x.kind === "tool" && hitOf(x));
+    if (r.full) t.items = mine.slice(-300);
     else {
       const at = new Map(t.items.map((x, i) => [x.k, i]));
-      for (const x of r.items) if (x.kind === "tool") at.has(x.k) ? (t.items[at.get(x.k)] = x) : t.items.push(x);
+      for (const x of mine) at.has(x.k) ? (t.items[at.get(x.k)] = x) : t.items.push(x);
       t.items = t.items.slice(-300);
     }
     t.epoch = r.epoch; t.rev = r.rev;
@@ -35,12 +55,18 @@ const ago = (s) => (s < 60 ? `${Math.max(1, Math.round(s))} с` : s < 3600 ? `${
 function scan(snap) {
   const now = Date.now() / 1000, live = [], day = [];
   const sessions = new Map((snap.sessions || []).map((s) => [s.name, s]));
-  for (const name of Object.keys(snap.timeline_rev || {})) pull(name, snap);
+  snapNow = snap;
+  for (const name of Object.keys(snap.timeline_rev || {})) {
+    // свободна или спит дольше суток — шагов за сутки у неё нет (шаги идут только в ходе), ленту не тянуть
+    const s = sessions.get(name);
+    if (!tl[name] && s && ["idle", "asleep", "failed", "closed"].includes(s.state) && now - (s.since || now) > DAY) continue;
+    pull(name, snap);
+  }
   for (const [name, { items }] of Object.entries(tl)) {
     if (!sessions.has(name)) continue;
     for (const st of items || []) {
       if (st.kind !== "tool" || now - (st.ts || 0) > DAY) continue;
-      const hit = classify(st);
+      const hit = hitOf(st);
       if (!hit) continue;
       const running = st.status === "running" || st.status == null && st.result == null;
       if (!running && !ended.has(st.id)) ended.set(st.id, Math.min(now, (st.ts || now) + AFTER));   // конец до загрузки — по старту
@@ -173,7 +199,9 @@ export default function register(hub) {
     place(root);   // по размеру уже нарисованной лампы
   };
   document.addEventListener("click", () => { if (open) { open = false; if (last) draw(...last); } });
-  redraw = () => { if (last) draw(...last); };
+  // пришла лента — перерисовать раз в кадр, а не на каждый ответ (первый снимок — десятки ответов подряд)
+  let frame = 0;
+  redraw = () => { if (!frame) frame = requestAnimationFrame(() => { frame = 0; if (last) draw(...last); }); };
   hub.addSlot("topbar", {
     id: "write-lamp",
     order: 100,
