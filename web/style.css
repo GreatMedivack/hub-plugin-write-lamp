@@ -1,6 +1,6 @@
-/* Лампа записи — только токены хаба, годится для любой темы; при unix-теме — терминальный вид */
-/* лампа не в потоке страницы — висит поверх, по центру над лентой: интерфейс не сдвигается (владелец 07.10) */
-/* полоса только с лампой — без своего места: display: contents, лампа (fixed) видна, ничего не сдвигается */
+/* Write lamp: only the hub's tokens, fits any theme; with a unix theme, a terminal look */
+/* the lamp is out of the page flow: it floats on top, centered above the feed, so the interface does not shift */
+/* a strip holding only the lamp takes no room: display: contents, the lamp (fixed) stays visible, nothing shifts */
 .topbar:not(:has(.slot:not(:is([data-plugin="write-lamp"], [data-plugin$=":write-lamp"])):not(:empty))) { display: contents; }
 .slot-topbar:is([data-plugin="write-lamp"], [data-plugin$=":write-lamp"]) { position: fixed; z-index: 60; display: flex; flex-direction: column; align-items: center; }
 .slot-topbar:is([data-plugin="write-lamp"], [data-plugin$=":write-lamp"])[data-pos="top"] { top: var(--wlamp-y, 30px); left: var(--wlamp-x, 50%); transform: translate(-100%, -50%); align-items: flex-end; }
@@ -15,13 +15,13 @@
 .wlamp i { width: 10px; height: 10px; border-radius: 50%; background: var(--warning);
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--warning) 25%, transparent); }
 .wlamp.danger i { background: var(--destructive); box-shadow: 0 0 0 4px color-mix(in oklab, var(--destructive) 25%, transparent); }
-/* размер лампы один во всех состояниях (владелец 19.10): место под самую длинную надпись держат невидимые
-   «99 записей» и «записей нет» в той же клетке, текст — по центру */
+/* the lamp has one size in every state: invisible "99 writes" and "no writes" (in the page language, data-max and
+   data-none from web/main.js) in the same cell hold room for the longest caption, the text is centered */
 .wlamp-n { display: inline-grid; justify-items: center; }
 .wlamp-n > *, .wlamp-n::before, .wlamp-n::after { grid-area: 1 / 1; }
-.wlamp-n::before { content: "99 записей"; visibility: hidden; }
-.wlamp-n::after { content: "записей нет"; visibility: hidden; }
-/* никто не пишет — лампа на месте, но погашена: серая, без мигания */
+.wlamp-n::before { content: attr(data-max); visibility: hidden; }
+.wlamp-n::after { content: attr(data-none); visibility: hidden; }
+/* nobody writes: the lamp stays in place but is off, gray, not blinking */
 .wlamp.idle { border-color: var(--border); background: var(--card); color: var(--muted-foreground); box-shadow: none; }
 .wlamp.idle i { background: var(--muted-foreground); opacity: .45; box-shadow: none; }
 .slot-topbar.on .wlamp i { animation: wlamp-blink 1s steps(1, end) infinite; }
@@ -42,10 +42,10 @@
 .wlamp-f { color: var(--muted-foreground); font-size: .85em; margin-top: 6px; }
 @media (prefers-reduced-motion: reduce) { .slot-topbar.on .wlamp i, :root.unix-theme .slot-topbar.on .wlamp { animation: none; } }
 
-/* unix-тема: лампа — инверсией «[!] N записи», мигает весь блок; попап — тонкая рамка цветом внимания, без скруглений */
+/* unix theme: the lamp is inverse "[!] N writes", the whole block blinks; the popup has a thin border in the attention color, no rounding */
 :root.unix-theme .wlamp { box-shadow: none; border: 0; border-radius: 0; background: var(--calm-attn, var(--warning)); color: var(--background); padding: 0 6px; }
-/* опасная запись (база, удаление) — тем же цветом темы, отличие — знак «[‼]» той же ширины: чужой красный/оранжевый
-   в зелёной теме выбивался (владелец 22.10: «в зелёной юникс-теме мигает оранжевым») */
+/* a dangerous write (a database, a delete): the same theme color, told apart by the "[‼]" sign of the same width: a
+   foreign red or orange stood out in the green theme */
 :root.unix-theme .wlamp.danger { background: var(--calm-attn, var(--warning)); }
 :root.unix-theme .wlamp.danger::before { content: "[‼]"; }
 :root.unix-theme .wlamp i { display: none; }
@@ -58,5 +58,5 @@
 :root.unix-theme .wlamp-k { border-radius: 0; font-weight: 400; }
 :root.unix-theme .wlamp-k.danger { background: color-mix(in oklab, var(--calm-attn, var(--warning)) 30%, var(--card)); }
 [data-pos="bottom"] > .wlamp-pop { top: auto; bottom: calc(100% + 6px); left: auto; right: 0; transform: none; }
-/* лампа в поле ввода — текст поля не заходит под неё (--wlamp-pad ставит web/main.js) */
+/* the lamp in the input field: the field text does not go under it (web/main.js sets --wlamp-pad) */
 main .dock textarea { padding-right: var(--wlamp-pad, 0px); }

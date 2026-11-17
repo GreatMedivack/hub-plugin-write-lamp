@@ -1,9 +1,9 @@
 {
   "name": "write-lamp",
   "icon": "icon.png",
-  "description": "Лампа записи: мигает в поле ввода (где его нет — в строке заголовка), когда агент пишет наружу — MR/PR, push, деплой и инфраструктура, запись в базу, MCP с записью; по клику — кто и что, переход в сессию; в покое остаётся на месте серой, без мигания",
-  "why": "Сразу видно, что флот вот-вот меняет что-то снаружи, — не открывая каждую сессию. Только сигнал: агенты не останавливаются",
-  "version": "1.2.3",
+  "description": "A write lamp: blinks in the input field (in the title bar where there is none) when an agent writes outside: an MR or PR, a push, a deploy and infrastructure, a write to a database, an MCP with writes; a click shows who and what, with a jump to the session; at rest it stays gray, without blinking",
+  "why": "You see at once that the fleet is about to change something outside, without opening each session. Only a signal: the agents are not stopped",
+  "version": "1.2.4",
   "hub": "^1.4",
   "web": "web/main.js"
 }
